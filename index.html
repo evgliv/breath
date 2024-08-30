@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breath Counting Exercise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        label, input {
+            margin: 5px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #timer {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        #currentStage {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Breath Counting Exercise</h1>
+        <div>
+            <label for="inhale">Inhale (seconds):</label>
+            <input type="number" id="inhale" value="4" min="1">
+        </div>
+        <div>
+            <label for="inhaleHold">Hold after inhale (seconds):</label>
+            <input type="number" id="inhaleHold" value="4" min="1">
+        </div>
+        <div>
+            <label for="exhale">Exhale (seconds):</label>
+            <input type="number" id="exhale" value="4" min="1">
+        </div>
+        <div>
+            <label for="exhaleHold">Hold after exhale (seconds):</label>
+            <input type="number" id="exhaleHold" value="4" min="1">
+        </div>
+        <div>
+            <label for="duration">Total exercise duration (seconds):</label>
+            <input type="number" id="duration" value="180" min="1">
+        </div>
+        <button onclick="startExercise()">Start Exercise</button>
+        <div id="timer"></div>
+        <div id="currentStage"></div>
+    </div>
+
+    <script>
+        let timer;
+        let currentTime = 0;
+        let currentStage = 0;
+        let stages = [];
+        let totalDuration = 0;
+
+        function startExercise() {
+            stages = [
+                parseInt(document.getElementById('inhale').value),
+                parseInt(document.getElementById('inhaleHold').value),
+                parseInt(document.getElementById('exhale').value),
+                parseInt(document.getElementById('exhaleHold').value)
+            ];
+            totalDuration = parseInt(document.getElementById('duration').value);
+            currentTime = 0;
+            currentStage = 0;
+
+            timer = setInterval(updateTimer, 1000);
+            updateStageDisplay();
+        }
+
+        function updateTimer() {
+            currentTime++;
+            document.getElementById('timer').innerText = `Time: ${currentTime}s / ${totalDuration}s`;
+
+            const stageTime = currentTime % stages.reduce((a, b) => a + b, 0);
+            let accumulatedTime = 0;
+            for (let i = 0; i < stages.length; i++) {
+                accumulatedTime += stages[i];
+                if (stageTime === accumulatedTime) {
+                    playLongBeep();
+                    currentStage = (currentStage + 1) % 4;
+                    updateStageDisplay();
+                } else if (stageTime < accumulatedTime) {
+                    break;
+                }
+            }
+
+            if (stageTime !== 0) {
+                playShortBeep();
+            }
+
+            if (currentTime >= totalDuration) {
+                clearInterval(timer);
+                document.getElementById('currentStage').innerText = 'Exercise completed!';
+            }
+        }
+
+        function updateStageDisplay() {
+            const stageNames = ['Inhale', 'Hold', 'Exhale', 'Hold'];
+            document.getElementById('currentStage').innerText = `Current stage: ${stageNames[currentStage]}`;
+        }
+
+        function playShortBeep() {
+            playBeep(100, 600);  // Duration reduced from 200ms to 100ms
+        }
+
+        function playLongBeep() {
+            playBeep(250, 800);  // Duration reduced from 500ms to 250ms
+        }
+
+        function playBeep(duration, frequency) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+    </script>
+</body>
+</html>
