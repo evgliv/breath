@@ -102,18 +102,21 @@
 
             const stageTime = currentTime % stages.reduce((a, b) => a + b, 0);
             let accumulatedTime = 0;
+            let boundary = false;
             for (let i = 0; i < stages.length; i++) {
                 accumulatedTime += stages[i];
                 if (stageTime === accumulatedTime) {
                     playLongBeep();
                     currentStage = (currentStage + 1) % 4;
                     updateStageDisplay();
+                    boundary = true;
+                    break;
                 } else if (stageTime < accumulatedTime) {
                     break;
                 }
             }
 
-            if (stageTime !== 0) {
+            if (stageTime !== 0 && !boundary) {
                 playShortBeep();
             }
 
